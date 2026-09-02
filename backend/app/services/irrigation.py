@@ -15,8 +15,8 @@ def irrigation_decision(
         reason = "Soil moisture is below the crop's minimum requirement."
 
     elif soil_moisture < target_moisture:
-        decision = "ON"
-        reason = "Soil moisture is below the target level."
+        decision = "OFF"
+        reason = "Soil moisture is below target but still above the minimum requirement."
 
     else:
         decision = "OFF"
