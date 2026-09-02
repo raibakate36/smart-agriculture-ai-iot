@@ -1,0 +1,59 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Environment variables / secrets
+.env
+.env.*
+!.env.example
+
+# IDEs
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Uploaded files
+backend/uploads/
+
+# ML datasets
+ml/dataset/
+ml/data/
+
+# Python cache / test cache
+.pytest_cache/
+.mypy_cache/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Model checkpoints / training artifacts
+*.ckpt
+*.pth.tar
+
+# Node / mobile dependencies (if added later)
+node_modules/
+
+# ML model files
+*.pth
