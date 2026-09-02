@@ -225,10 +225,15 @@ print()
 # ============================================================
 # CONTINUOUS SIMULATION
 # ============================================================
+try:
+    while True:
 
-while True:
+        send_sensor_data()
 
-    send_sensor_data()
+        # Wait 10 seconds before next reading
+        time.sleep(10)
 
-    # Wait 10 seconds before next reading
-    time.sleep(10)
+except KeyboardInterrupt:
+
+    print("\nSimulation stopped.")
+    
