@@ -15,6 +15,9 @@ from app.schemas.agricultural_data import AgriculturalDataCreate
 from app.services.plant_analysis import analyze_plant_image
 from app.services.crop_health import analyze_tomato_condition
 from app.services.recommendation_engine import generate_recommendation
+from app.services.weather import get_weather
+from app.services.weather import get_weather
+from app.services.weather_analysis import analyze_weather
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -130,19 +133,196 @@ def get_irrigation_status(db: Session = Depends(get_db)):
             "crop": latest_reading.crop
         }
 
+    # Get weather forecast
+    weather_data = get_weather(
+        latitude=18.172232,
+        longitude=74.5614
+    )
+
+    # --------------------------------------------------
+    # WEATHER UNAVAILABLE → SENSOR-ONLY FALLBACK
+    # --------------------------------------------------
+    if weather_data.get("weather_available") is False:
+
+        decision = irrigation_decision(
+            soil_moisture=latest_reading.soil_moisture,
+            temperature=latest_reading.temperature,
+            humidity=latest_reading.humidity,
+            min_moisture=crop.min_moisture,
+            target_moisture=crop.target_moisture
+        )
+
+        return {
+            "crop": latest_reading.crop,
+            **decision,
+            "weather": {
+                "available": False,
+                "message": (
+                    "Weather service temporarily unavailable. "
+                    "Using sensor-based irrigation decision."
+                )
+            }
+        }
+
+    # --------------------------------------------------
+    # WEATHER AVAILABLE → ANALYZE RAIN
+    # --------------------------------------------------
+    weather_result = analyze_weather(
+        weather_data,
+        forecast_hours=6
+    )
+
+    # --------------------------------------------------
+    # IRRIGATION DECISION USING SENSOR + WEATHER
+    # --------------------------------------------------
     decision = irrigation_decision(
         soil_moisture=latest_reading.soil_moisture,
         temperature=latest_reading.temperature,
         humidity=latest_reading.humidity,
         min_moisture=crop.min_moisture,
-        target_moisture=crop.target_moisture
+        target_moisture=crop.target_moisture,
+        rain_probability=weather_result["rain_probability"],
+        expected_rain_mm=weather_result["expected_rain_mm"]
     )
 
     return {
         "crop": latest_reading.crop,
-        **decision
+        **decision,
+        "weather": weather_result
     }
 
+@app.get("/api/v1/dashboard")
+def get_dashboard(db: Session = Depends(get_db)):
+
+    # Get latest sensor reading
+    latest_reading = (
+        db.query(SensorReading)
+        .order_by(SensorReading.timestamp.desc())
+        .first()
+    )
+
+    if latest_reading is None:
+        return {
+            "message": "No sensor data available"
+        }
+
+    # Get crop configuration
+    crop = (
+        db.query(CropConfiguration)
+        .filter(
+            CropConfiguration.crop_name == latest_reading.crop
+        )
+        .first()
+    )
+
+    # Get weather
+    weather_data = get_weather(
+        latitude=18.172232,
+        longitude=74.5614
+    )
+
+    # Sensor data
+    sensors = {
+        "soil_moisture": latest_reading.soil_moisture,
+        "temperature": latest_reading.temperature,
+        "humidity": latest_reading.humidity,
+        "soil_ph": latest_reading.soil_ph,
+        "nitrogen": latest_reading.nitrogen,
+        "phosphorus": latest_reading.phosphorus,
+        "potassium": latest_reading.potassium
+    }
+
+    # --------------------------------------------------
+    # WEATHER UNAVAILABLE
+    # --------------------------------------------------
+    if weather_data.get("weather_available") is False:
+
+        if crop is not None:
+            decision = irrigation_decision(
+                soil_moisture=latest_reading.soil_moisture,
+                temperature=latest_reading.temperature,
+                humidity=latest_reading.humidity,
+                min_moisture=crop.min_moisture,
+                target_moisture=crop.target_moisture
+            )
+
+            irrigation = {
+                "status": decision["irrigation"],
+                "recommendation": "UNKNOWN",
+                "reason": decision["reason"]
+            }
+        else:
+            irrigation = {
+                "status": "UNKNOWN",
+                "recommendation": "UNKNOWN",
+                "reason": "Crop configuration not found."
+            }
+
+        return {
+            "crop": latest_reading.crop,
+            "sensors": sensors,
+            "weather": {
+                "available": False,
+                "message": "Weather service temporarily unavailable."
+            },
+            "irrigation": irrigation,
+            "timestamp": latest_reading.timestamp
+        }
+
+    # --------------------------------------------------
+    # WEATHER AVAILABLE
+    # --------------------------------------------------
+    weather_result = analyze_weather(
+        weather_data,
+        forecast_hours=6
+    )
+
+    if crop is not None:
+
+        decision = irrigation_decision(
+            soil_moisture=latest_reading.soil_moisture,
+            temperature=latest_reading.temperature,
+            humidity=latest_reading.humidity,
+            min_moisture=crop.min_moisture,
+            target_moisture=crop.target_moisture,
+            rain_probability=weather_result["rain_probability"],
+            expected_rain_mm=weather_result["expected_rain_mm"]
+        )
+
+        irrigation = {
+            "status": decision["irrigation"],
+            "recommendation": weather_result["recommendation"],
+            "reason": decision["reason"]
+        }
+
+    else:
+        irrigation = {
+            "status": "UNKNOWN",
+            "recommendation": weather_result["recommendation"],
+            "reason": "Crop configuration not found."
+        }
+
+    return {
+        "crop": latest_reading.crop,
+
+        "sensors": sensors,
+
+        "weather": {
+            "rain_expected": weather_result["rain_expected"],
+            "rain_probability": weather_result["rain_probability"],
+            "expected_rain_mm": weather_result["expected_rain_mm"],
+            "forecast_hours": weather_result["forecast_hours"]
+        },
+
+        "irrigation": irrigation,
+
+        "timestamp": latest_reading.timestamp
+    }
+
+
+
+
+    
 @app.post("/api/v1/crops")
 def create_crop(
     data: CropConfigurationCreate,
@@ -410,3 +590,10 @@ def field_analysis(db: Session = Depends(get_db)):
             "Use /api/v1/plant-image/analyze for image-based disease detection."
         )
     }
+
+@app.get("/api/v1/weather")
+def weather(
+    latitude: float,
+    longitude: float
+):
+    return get_weather(latitude, longitude)
