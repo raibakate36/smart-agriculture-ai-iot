@@ -18,6 +18,7 @@ from app.services.recommendation_engine import generate_recommendation
 from app.services.weather import get_weather
 from app.services.weather import get_weather
 from app.services.weather_analysis import analyze_weather
+from app.models.disease_analysis import DiseaseAnalysis
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -302,6 +303,15 @@ def get_dashboard(db: Session = Depends(get_db)):
             "reason": "Crop configuration not found."
         }
 
+    latest_disease = (
+    db.query(DiseaseAnalysis)
+    .filter(
+        DiseaseAnalysis.crop == latest_reading.crop
+    )
+    .order_by(DiseaseAnalysis.timestamp.desc())
+    .first()
+    )
+
     return {
         "crop": latest_reading.crop,
 
@@ -315,6 +325,16 @@ def get_dashboard(db: Session = Depends(get_db)):
         },
 
         "irrigation": irrigation,
+        "crop_health": (
+        {
+        "disease": latest_disease.disease,
+        "confidence": latest_disease.confidence,
+        "analysis_id": latest_disease.id,
+        "timestamp": latest_disease.timestamp
+        }
+            if latest_disease is not None
+            else None
+            ),
 
         "timestamp": latest_reading.timestamp
     }
@@ -381,6 +401,29 @@ def get_agricultural_data(db: Session = Depends(get_db)):
 
     return records
 
+@app.get("/api/v1/disease-history")
+def get_disease_history(
+    db: Session = Depends(get_db)
+):
+    records = (
+        db.query(DiseaseAnalysis)
+        .order_by(DiseaseAnalysis.timestamp.desc())
+        .all()
+    )
+
+    return [
+        {
+            "id": record.id,
+            "filename": record.filename,
+            "disease": record.disease,
+            "confidence": record.confidence,
+            "device_id": record.device_id,
+            "crop": record.crop,
+            "timestamp": record.timestamp
+        }
+        for record in records
+    ]
+
 @app.post("/api/v1/plant-image/analyze")
 async def analyze_plant_image_endpoint(
     image: UploadFile = File(...),
@@ -434,6 +477,31 @@ async def analyze_plant_image_endpoint(
         )
 
         result["sensor_data"] = None
+    # --------------------------------------------------------
+    # SAVE DISEASE ANALYSIS HISTORY
+    # --------------------------------------------------------
+
+    disease_record = DiseaseAnalysis(
+        filename=result["filename"],
+        disease=result["prediction"]["disease"],
+        confidence=result["prediction"]["confidence"],
+        device_id=(
+            latest_sensor.device_id
+            if latest_sensor is not None
+            else None
+        ),
+        crop=(
+            latest_sensor.crop
+            if latest_sensor is not None
+            else "tomato"
+        )
+    )
+
+    db.add(disease_record)
+    db.commit()
+    db.refresh(disease_record)
+
+    result["analysis_id"] = disease_record.id
 
     return result
 
