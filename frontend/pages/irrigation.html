@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Smart Irrigation · Smart Agriculture</title>
+<link rel="stylesheet" href="../css/style.css" />
+<link rel="stylesheet" href="../css/responsive.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="app-shell">
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><span class="leaf" aria-hidden="true">🌱</span> Smart Agriculture</div>
+    <nav aria-label="Main navigation">
+      <ul class="nav-list">
+        <li><a href="../index.html"><span class="nav-icon">📊</span> Dashboard</a></li>
+        <li><a href="disease-detection.html"><span class="nav-icon">📷</span> Disease Detection</a></li>
+        <li><a href="irrigation.html" class="active"><span class="nav-icon">💧</span> Smart Irrigation</a></li>
+        <li><a href="crop-health.html"><span class="nav-icon">🍅</span> Crop Health</a></li>
+        <li><a href="analytics.html"><span class="nav-icon">📈</span> Analytics</a></li>
+        <li><a href="settings.html"><span class="nav-icon">⚙️</span> Settings</a></li>
+      </ul>
+    </nav>
+    <div class="sidebar-footer">
+      Logged in as <strong data-current-username>Farmer</strong><br/>
+      <a href="#" id="logoutBtn" style="color:#E6A25C;">Log out</a>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <button class="menu-toggle" id="menuToggle" aria-label="Open menu">☰</button>
+        <div>
+          <div class="page-title">Smart Irrigation</div>
+          <div class="page-subtitle">Monitor sensors and control watering</div>
+        </div>
+      </div>
+      <div class="field-chip"><span class="dot"></span> FIELD_001 <span class="field-crop">· Tomato Crop</span></div>
+    </div>
+
+    <div class="content">
+      <div class="demo-banner visible" id="demoBanner">
+        <span class="badge">DEMO / MOCK SENSOR MODE</span>
+        <span>ESP32 hardware isn't connected. Showing simulated sensor values so you can explore every control safely.</span>
+      </div>
+
+      <div id="loadingState" class="state-box">
+        <div class="spinner"></div>
+        <div>Loading irrigation status...</div>
+      </div>
+
+      <div id="irrigationContent" style="display:none;">
+
+        <div class="grid grid-4">
+          <div class="card">
+            <span class="card-label">💧 Soil Moisture</span>
+            <div class="metric-value" id="valMoisture" style="font-size:1.7rem; margin-top:8px;">-- <span class="unit">%</span></div>
+          </div>
+          <div class="card">
+            <span class="card-label">🪣 Water Level</span>
+            <div class="metric-value" id="valWaterLevel" style="font-size:1.7rem; margin-top:8px;">-- <span class="unit">%</span></div>
+          </div>
+          <div class="card">
+            <span class="card-label">🌡️ Temperature</span>
+            <div class="metric-value" id="valTemperature" style="font-size:1.7rem; margin-top:8px;">-- <span class="unit">°C</span></div>
+          </div>
+          <div class="card">
+            <span class="card-label">💦 Humidity</span>
+            <div class="metric-value" id="valHumidity" style="font-size:1.7rem; margin-top:8px;">-- <span class="unit">%</span></div>
+          </div>
+        </div>
+
+        <div class="grid grid-2" style="margin-top:18px;">
+          <div class="card">
+            <span class="card-label">🌧 Rain Prediction</span>
+            <div class="metric-value" id="valRainPrediction" style="margin-top:8px;">-- <span class="unit">%</span></div>
+          </div>
+          <div class="card">
+            <span class="card-label">🚿 Irrigation Status</span>
+            <div class="metric-value" id="valIrrigationStatus" style="margin-top:8px;">--</div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:18px;">
+          <p style="font-size:0.92rem; line-height:1.6;" id="recommendationText">--</p>
+        </div>
+
+        <h2 class="section-heading">Irrigation Controls</h2>
+        <div class="card">
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-label">Auto Irrigation</div>
+              <div class="toggle-desc">When ON, the system decides irrigation automatically based on soil moisture.</div>
+            </div>
+            <label class="switch"><input type="checkbox" id="autoIrrigationToggle" /><span class="slider"></span></label>
+          </div>
+          <div style="display:flex; gap:12px; margin-top:16px; flex-wrap:wrap;">
+            <button class="btn btn-primary" id="startBtn">▶ Start Irrigation</button>
+            <button class="btn btn-secondary" id="stopBtn">⏹ Stop Irrigation</button>
+          </div>
+          <p class="hint" id="controlHint" style="margin-top:12px;"></p>
+        </div>
+
+        <h2 class="section-heading">Irrigation Schedule</h2>
+        <div class="card">
+          <form id="scheduleForm" class="grid grid-4" style="align-items:end; gap:14px;">
+            <div class="field-group" style="margin-bottom:0;">
+              <label for="schedDate">Date</label>
+              <input type="date" id="schedDate" required />
+            </div>
+            <div class="field-group" style="margin-bottom:0;">
+              <label for="schedTime">Start Time</label>
+              <input type="time" id="schedTime" required />
+            </div>
+            <div class="field-group" style="margin-bottom:0;">
+              <label for="schedDuration">Duration (min)</label>
+              <input type="number" id="schedDuration" min="1" max="180" value="15" required />
+            </div>
+            <div class="field-group" style="margin-bottom:0;">
+              <label for="schedCrop">Crop</label>
+              <select id="schedCrop">
+                <option>Tomato</option>
+                <option>Wheat</option>
+                <option>Rice</option>
+                <option>Maize</option>
+                <option>Cotton</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary" style="grid-column: 1 / -1;">+ Add Schedule</button>
+          </form>
+
+          <div id="scheduleList" style="margin-top:18px;"></div>
+        </div>
+      </div>
+
+      <div id="errorState" class="state-box" style="display:none;">
+        <span class="state-icon">⚠️</span>
+        <div id="errorMessage">Unable to load irrigation status.</div>
+        <button class="btn btn-secondary" onclick="loadIrrigation()">Try Again</button>
+      </div>
+
+      <footer class="app-footer">Smart Agriculture Monitoring Platform · Prototype build</footer>
+    </div>
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/irrigation.js"></script>
+</body>
+</html>
