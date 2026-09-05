@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dashboard · Smart Agriculture</title>
+<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/responsive.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="app-shell">
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><span class="leaf" aria-hidden="true">🌱</span> Smart Agriculture</div>
+    <nav aria-label="Main navigation">
+      <ul class="nav-list">
+        <li><a href="index.html" class="active"><span class="nav-icon">📊</span> Dashboard</a></li>
+        <li><a href="pages/disease-detection.html"><span class="nav-icon">📷</span> Disease Detection</a></li>
+        <li><a href="pages/irrigation.html"><span class="nav-icon">💧</span> Smart Irrigation</a></li>
+        <li><a href="pages/crop-health.html"><span class="nav-icon">🍅</span> Crop Health</a></li>
+        <li><a href="pages/analytics.html"><span class="nav-icon">📈</span> Analytics</a></li>
+        <li><a href="pages/settings.html"><span class="nav-icon">⚙️</span> Settings</a></li>
+      </ul>
+    </nav>
+    <div class="sidebar-footer">
+      Logged in as <strong data-current-username>Farmer</strong><br/>
+      <a href="#" id="logoutBtn" style="color:#E6A25C;">Log out</a>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div style="display:flex; align-items:center; gap:10px; min-width:0;">
+        <button class="menu-toggle" id="menuToggle" aria-label="Open menu">☰</button>
+        <div class="topbar-logo">
+          <span class="leaf" aria-hidden="true">🌱</span>
+          <span class="topbar-logo-text">Smart Agriculture</span>
+        </div>
+      </div>
+
+      <div class="header-search">
+        <span aria-hidden="true">🔍</span>
+        <input type="search" id="headerSearch" placeholder="Search fields, crops, alerts..." aria-label="Search" />
+      </div>
+
+      <div class="header-actions">
+        <div class="icon-btn-wrap">
+          <button class="icon-btn" id="notifBtn" aria-label="Notifications" aria-haspopup="true">
+            🔔<span class="badge-dot" id="notifBadge"></span>
+          </button>
+          <div class="dropdown-panel" id="notifPanel" role="menu">
+            <div class="dropdown-header">Notifications</div>
+            <div id="notifList"></div>
+          </div>
+        </div>
+
+        <div class="icon-btn-wrap">
+          <button class="profile-btn" id="profileBtn" aria-haspopup="true">
+            <span class="avatar">👤</span>
+            <span class="profile-name" data-current-username>Farmer</span>
+          </button>
+          <div class="dropdown-panel" id="profilePanel" role="menu">
+            <a href="pages/settings.html" class="dropdown-item">⚙️ Settings</a>
+            <a href="#" class="dropdown-item" id="logoutBtnDropdown">🚪 Log out</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="page-heading-row">
+        <div>
+          <h1 class="page-title-lg">Dashboard</h1>
+          <div class="page-subtitle">A quick look at your field, right now</div>
+        </div>
+        <div class="field-chip" id="fieldChip"><span class="dot"></span> FIELD_001 <span class="field-crop">· Tomato Crop</span></div>
+      </div>
+
+      <div class="demo-banner visible" id="demoBanner">
+        <span class="badge">DEMO MODE</span>
+        <span>Showing realistic simulated sensor data. Connect a backend/ESP32 and set <code>USE_MOCK_DATA = false</code> in api.js to go live.</span>
+      </div>
+
+      <div id="loadingState" class="state-box">
+        <div class="spinner"></div>
+        <div>Loading field data...</div>
+      </div>
+
+      <div id="dashboardContent" style="display:none;">
+
+        <div class="grid grid-4">
+          <div class="card">
+            <span class="card-label"><span class="metric-icon">🍅</span> Crop Health</span>
+            <div class="metric-value" id="cardCropHealth" style="margin-top:8px;">-- <span class="unit">%</span></div>
+          </div>
+          <div class="card">
+            <span class="card-label"><span class="metric-icon">💧</span> Soil Moisture</span>
+            <div class="metric-value" id="cardSoilMoisture" style="margin-top:8px;">-- <span class="unit">%</span></div>
+          </div>
+          <div class="card">
+            <span class="card-label"><span class="metric-icon">🌡️</span> Temperature</span>
+            <div class="metric-value" id="cardTemperature" style="margin-top:8px;">-- <span class="unit">°C</span></div>
+          </div>
+          <div class="card">
+            <span class="card-label"><span class="metric-icon">💦</span> Humidity</span>
+            <div class="metric-value" id="cardHumidity" style="margin-top:8px;">-- <span class="unit">%</span></div>
+          </div>
+        </div>
+
+        <div class="grid grid-2" style="margin-top:18px;">
+          <div class="card">
+            <span class="card-label"><span class="metric-icon">🚿</span> Irrigation Status</span>
+            <div class="metric-value" id="cardIrrigation" style="margin-top:8px;">--</div>
+          </div>
+          <div class="card">
+            <span class="card-label"><span class="metric-icon">🦠</span> Disease Risk</span>
+            <div class="metric-value" id="cardDiseaseRisk" style="margin-top:8px;">--</div>
+          </div>
+        </div>
+
+        <div class="grid grid-2" style="margin-top:26px; align-items:start;">
+          <!-- Weather -->
+          <div class="card">
+            <h3 style="margin-bottom:14px; font-size:1rem;">🌤 Weather</h3>
+            <div class="weather-grid">
+              <div class="weather-item">
+                <div class="weather-value" id="weatherTemp">--°C</div>
+                <div class="weather-label">Temperature</div>
+              </div>
+              <div class="weather-item">
+                <div class="weather-value" id="weatherHumidity">--%</div>
+                <div class="weather-label">Humidity</div>
+              </div>
+              <div class="weather-item">
+                <div class="weather-value" id="weatherRain">--%</div>
+                <div class="weather-label">Rain Chance</div>
+              </div>
+              <div class="weather-item">
+                <div class="weather-value" id="weatherWind">-- km/h</div>
+                <div class="weather-label">Wind Speed</div>
+              </div>
+            </div>
+            <p style="margin-top:12px; font-size:0.85rem; color:var(--color-ink-muted);" id="weatherCondition">--</p>
+          </div>
+
+          <!-- Crop overview -->
+          <div class="card">
+            <h3 style="margin-bottom:14px; font-size:1rem;">🌾 Crop Overview</h3>
+            <div style="font-size:0.92rem; line-height:2.1;">
+              <div>Crop: <strong id="overviewCropName">--</strong></div>
+              <div>Growth Stage: <strong id="overviewGrowthStage">--</strong></div>
+              <div>Health: <strong id="overviewHealthPct">--%</strong></div>
+              <div>Soil Condition: <strong id="overviewSoilCondition">--</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <h2 class="section-heading">Recent Alerts</h2>
+        <div class="card" id="alertsCard">
+          <div id="alertsList"></div>
+        </div>
+      </div>
+
+      <div id="errorState" class="state-box" style="display:none;">
+        <span class="state-icon">⚠️</span>
+        <div id="errorMessage">Unable to load field data.</div>
+        <button class="btn btn-secondary" onclick="loadDashboard()">Try Again</button>
+      </div>
+
+      <footer class="app-footer">Smart Agriculture Monitoring Platform · Prototype build</footer>
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/dashboard.js"></script>
+</body>
+</html>
