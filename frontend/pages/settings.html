@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Settings · Smart Agriculture</title>
+<link rel="stylesheet" href="../css/style.css" />
+<link rel="stylesheet" href="../css/responsive.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="app-shell">
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><span class="leaf" aria-hidden="true">🌱</span> Smart Agriculture</div>
+    <nav aria-label="Main navigation">
+      <ul class="nav-list">
+        <li><a href="../index.html"><span class="nav-icon">📊</span> Dashboard</a></li>
+        <li><a href="disease-detection.html"><span class="nav-icon">📷</span> Disease Detection</a></li>
+        <li><a href="irrigation.html"><span class="nav-icon">💧</span> Smart Irrigation</a></li>
+        <li><a href="crop-health.html"><span class="nav-icon">🍅</span> Crop Health</a></li>
+        <li><a href="analytics.html"><span class="nav-icon">📈</span> Analytics</a></li>
+        <li><a href="settings.html" class="active"><span class="nav-icon">⚙️</span> Settings</a></li>
+      </ul>
+    </nav>
+    <div class="sidebar-footer">
+      Logged in as <strong data-current-username>Farmer</strong><br/>
+      <a href="#" id="logoutBtn" style="color:#E6A25C;">Log out</a>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <button class="menu-toggle" id="menuToggle" aria-label="Open menu">☰</button>
+        <div>
+          <div class="page-title">Settings</div>
+          <div class="page-subtitle">Profile, farm details, and preferences</div>
+        </div>
+      </div>
+      <div class="field-chip"><span class="dot"></span> FIELD_001 <span class="field-crop">· Tomato Crop</span></div>
+    </div>
+
+    <div class="content">
+
+      <h2 class="section-heading">Profile</h2>
+      <div class="card">
+        <div class="grid grid-3">
+          <div class="field-group" style="margin-bottom:0;">
+            <label for="farmerName">Farmer Name</label>
+            <input type="text" id="farmerName" />
+          </div>
+          <div class="field-group" style="margin-bottom:0;">
+            <label for="mobileNumber">Mobile Number</label>
+            <input type="tel" id="mobileNumber" />
+          </div>
+          <div class="field-group" style="margin-bottom:0;">
+            <label for="emailAddress">Email</label>
+            <input type="email" id="emailAddress" />
+          </div>
+        </div>
+      </div>
+
+      <h2 class="section-heading">Farm Information</h2>
+      <div class="card">
+        <div class="grid grid-3">
+          <div class="field-group" style="margin-bottom:0;">
+            <label for="farmName">Farm Name</label>
+            <input type="text" id="farmName" />
+          </div>
+          <div class="field-group" style="margin-bottom:0;">
+            <label for="farmLocation">Location</label>
+            <input type="text" id="farmLocation" />
+          </div>
+          <div class="field-group" style="margin-bottom:0;">
+            <label for="farmSize">Farm Size (acres)</label>
+            <input type="number" id="farmSize" min="0" step="0.1" />
+          </div>
+          <div class="field-group" style="margin-bottom:0; margin-top:14px;">
+            <label for="soilType">Soil Type</label>
+            <select id="soilType">
+              <option>Loamy</option>
+              <option>Clay</option>
+              <option>Sandy</option>
+              <option>Silty</option>
+              <option>Peaty</option>
+            </select>
+          </div>
+          <div class="field-group" style="margin-bottom:0; margin-top:14px;">
+            <label for="mainCrop">Main Crop</label>
+            <select id="mainCrop">
+              <option>Tomato</option>
+              <option>Wheat</option>
+              <option>Rice</option>
+              <option>Maize</option>
+              <option>Cotton</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="section-heading">Preferences</h2>
+      <div class="card">
+        <div class="grid grid-2" style="margin-bottom:16px;">
+          <div class="field-group" style="margin-bottom:0;">
+            <label for="languageSelect">Language</label>
+            <select id="languageSelect">
+              <option value="en">English</option>
+              <option value="hi">हिन्दी (Hindi)</option>
+              <option value="es">Español (Spanish)</option>
+              <option value="fr">Français (French)</option>
+            </select>
+          </div>
+          <div class="field-group" style="margin-bottom:0;">
+            <label for="tempUnitSelect">Temperature Unit</label>
+            <select id="tempUnitSelect">
+              <option value="celsius">Celsius (°C)</option>
+              <option value="fahrenheit">Fahrenheit (°F)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">Notifications</div>
+            <div class="toggle-desc">Receive alerts for irrigation, disease, and weather warnings.</div>
+          </div>
+          <label class="switch"><input type="checkbox" id="notificationsToggle" /><span class="slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">Dark Mode</div>
+            <div class="toggle-desc">Switch to a low-light color theme.</div>
+          </div>
+          <label class="switch"><input type="checkbox" id="darkModeToggle" /><span class="slider"></span></label>
+        </div>
+      </div>
+
+      <h2 class="section-heading">Security</h2>
+      <div class="card">
+        <div class="grid grid-3">
+          <div class="field-group" style="margin-bottom:0;">
+            <label for="currentPassword">Current Password</label>
+            <input type="password" id="currentPassword" autocomplete="current-password" />
+          </div>
+          <div class="field-group" style="margin-bottom:0;">
+            <label for="newPassword">New Password</label>
+            <input type="password" id="newPassword" autocomplete="new-password" />
+          </div>
+          <div class="field-group" style="margin-bottom:0;">
+            <label for="confirmPassword">Confirm New Password</label>
+            <input type="password" id="confirmPassword" autocomplete="new-password" />
+          </div>
+        </div>
+        <p class="error-text" id="passwordChangeError" role="alert"></p>
+        <div style="display:flex; align-items:center; gap:14px; margin-top:14px; flex-wrap:wrap;">
+          <button class="btn btn-secondary" id="changePasswordBtn">Change Password</button>
+          <button class="btn btn-secondary" id="settingsLogoutBtn" style="color:var(--color-critical);">🚪 Log out</button>
+        </div>
+      </div>
+
+      <div style="margin-top:22px; display:flex; align-items:center; gap:14px;">
+        <button class="btn btn-primary" id="saveBtn">Save Changes</button>
+        <span id="saveStatus" style="font-size:0.85rem; color:var(--color-good); display:none;">✓ Settings saved</span>
+      </div>
+
+      <footer class="app-footer">Smart Agriculture Monitoring Platform · Prototype build</footer>
+    </div>
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/settings.js"></script>
+</body>
+</html>
