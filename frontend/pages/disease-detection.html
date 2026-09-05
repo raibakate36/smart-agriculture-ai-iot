@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Disease Detection · Smart Agriculture</title>
+<link rel="stylesheet" href="../css/style.css" />
+<link rel="stylesheet" href="../css/responsive.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="app-shell">
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><span class="leaf" aria-hidden="true">🌱</span> Smart Agriculture</div>
+    <nav aria-label="Main navigation">
+      <ul class="nav-list">
+        <li><a href="../index.html"><span class="nav-icon">📊</span> Dashboard</a></li>
+        <li><a href="disease-detection.html" class="active"><span class="nav-icon">📷</span> Disease Detection</a></li>
+        <li><a href="irrigation.html"><span class="nav-icon">💧</span> Smart Irrigation</a></li>
+        <li><a href="crop-health.html"><span class="nav-icon">🍅</span> Crop Health</a></li>
+        <li><a href="analytics.html"><span class="nav-icon">📈</span> Analytics</a></li>
+        <li><a href="settings.html"><span class="nav-icon">⚙️</span> Settings</a></li>
+      </ul>
+    </nav>
+    <div class="sidebar-footer">
+      Logged in as <strong data-current-username>Farmer</strong><br/>
+      <a href="#" id="logoutBtn" style="color:#E6A25C;">Log out</a>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <button class="menu-toggle" id="menuToggle" aria-label="Open menu">☰</button>
+        <div>
+          <div class="page-title">Disease Detection</div>
+          <div class="page-subtitle">Upload a leaf photo for an instant AI-style check</div>
+        </div>
+      </div>
+      <div class="field-chip"><span class="dot"></span> FIELD_001 <span class="field-crop">· Tomato Crop</span></div>
+    </div>
+
+    <div class="content">
+      <div class="demo-banner visible" id="demoBanner">
+        <span class="badge">DEMO MODE</span>
+        <span>This is a simulated AI response for demonstration. Connect a real model via <code>detectDisease()</code> in api.js to go live.</span>
+      </div>
+
+      <div class="grid grid-2">
+        <div class="card">
+          <h3 style="margin-bottom:14px;">Upload a Crop / Leaf Photo</h3>
+
+          <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Upload image">
+            <span class="dz-icon" aria-hidden="true">📷</span>
+            <div><strong>Drag & drop</strong> an image here, or click to browse</div>
+            <div class="hint">JPEG, PNG or WEBP · up to 8MB</div>
+          </div>
+          <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp" hidden aria-label="Leaf image file" />
+
+          <div class="preview-wrap" id="previewWrap">
+            <img id="previewImg" alt="Preview of the uploaded leaf photo" />
+          </div>
+
+          <button class="btn btn-primary btn-block" id="analyzeBtn" style="margin-top:16px;" disabled>
+            Analyze Image
+          </button>
+          <p class="error-text" id="uploadError" role="alert"></p>
+        </div>
+
+        <div class="card">
+          <h3 style="margin-bottom:14px;">Result</h3>
+          <div id="resultEmpty" class="state-box">
+            <span class="state-icon">🍃</span>
+            <div>Upload a leaf photo to see the diagnosis here.</div>
+          </div>
+
+          <div id="resultLoading" class="state-box" style="display:none;">
+            <div class="spinner"></div>
+            <div>Analyzing image...</div>
+          </div>
+
+          <div id="resultContent" style="display:none;">
+            <div class="card-label" style="margin-bottom:6px;">Detected Condition</div>
+            <div class="metric-value" id="diseaseLabel" style="font-size:1.5rem;">--</div>
+
+            <div class="card-label" style="margin-top:16px; margin-bottom:6px;">Confidence</div>
+            <div class="bar-track" style="margin-bottom:4px;"><div class="bar-fill" id="confidenceBar" style="width:0%;"></div></div>
+            <div style="font-size:0.85rem; color:var(--color-ink-muted);" id="confidenceValue">--%</div>
+
+            <div class="card-label" style="margin-top:18px; margin-bottom:6px;">Symptoms</div>
+            <p style="font-size:0.9rem; line-height:1.6;" id="symptomsText">--</p>
+
+            <div class="card-label" style="margin-top:14px; margin-bottom:6px;">Recommended Treatment</div>
+            <p style="font-size:0.9rem; line-height:1.6;" id="treatmentText">--</p>
+
+            <div class="card-label" style="margin-top:14px; margin-bottom:6px;">Prevention Tips</div>
+            <p style="font-size:0.9rem; line-height:1.6;" id="preventionText">--</p>
+          </div>
+        </div>
+      </div>
+
+      <footer class="app-footer">Smart Agriculture Monitoring Platform · Prototype build</footer>
+    </div>
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/disease.js"></script>
+</body>
+</html>
