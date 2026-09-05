@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sign In · Smart Agriculture</title>
+<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/responsive.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="brand-mark">
+        <span class="leaf" aria-hidden="true">🌱</span>
+        <h1>Smart Agriculture</h1>
+        <p>Sign in to view your farm</p>
+      </div>
+
+      <form id="loginForm" novalidate>
+        <div class="field-group">
+          <label for="identifier">Email or Mobile Number</label>
+          <input type="text" id="identifier" name="identifier" autocomplete="username"
+                 placeholder="you@example.com or 9876543210" required aria-required="true" />
+          <p class="error-text" id="identifierError"></p>
+        </div>
+
+        <div class="field-group">
+          <label for="password">Password</label>
+          <div class="password-wrap">
+            <input type="password" id="password" name="password" autocomplete="current-password"
+                   required aria-required="true" />
+            <button type="button" class="password-toggle" id="togglePassword" aria-label="Show password">👁</button>
+          </div>
+          <p class="error-text" id="passwordError"></p>
+        </div>
+
+        <div class="login-options">
+          <label class="checkbox-row">
+            <input type="checkbox" id="rememberMe" />
+            <span>Remember me</span>
+          </label>
+          <a href="#" id="forgotPasswordLink" class="link-muted">Forgot password?</a>
+        </div>
+
+        <p class="error-text" id="loginError" role="alert"></p>
+
+        <button type="submit" class="btn btn-primary btn-block" id="loginBtn">Sign In</button>
+        <button type="button" class="btn btn-secondary btn-block" id="demoLoginBtn" style="margin-top:10px;">
+          🚜 Try Demo Login
+        </button>
+      </form>
+
+      <p style="text-align:center; margin-top:18px; font-size:0.86rem; color:var(--color-ink-muted);">
+        New to Smart Agriculture? <a href="#" id="createAccountLink" class="link-muted" style="font-weight:600;">Create an account</a>
+      </p>
+
+      <div class="demo-creds">
+        <strong>Demo accounts</strong><br/>
+        Farmer &nbsp;→&nbsp; farmer@demo.com / farmer123<br/>
+        Officer &nbsp;→&nbsp; officer@demo.com / officer123<br/>
+        <span style="opacity:0.8;">Or just tap "Try Demo Login" above — any credentials work in demo mode.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Simple modal used for Forgot Password / Create Account demo flows -->
+  <div class="modal-overlay" id="infoModal">
+    <div class="modal-box">
+      <h3 id="infoModalTitle">Notice</h3>
+      <p id="infoModalBody" style="font-size:0.9rem; color:var(--color-ink-muted); line-height:1.6;"></p>
+      <button class="btn btn-primary btn-block" id="infoModalClose">Got it</button>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    const form = document.getElementById("loginForm");
+    const btn = document.getElementById("loginBtn");
+    const demoBtn = document.getElementById("demoLoginBtn");
+    const errorText = document.getElementById("loginError");
+    const identifierInput = document.getElementById("identifier");
+    const passwordInput = document.getElementById("password");
+    const rememberMe = document.getElementById("rememberMe");
+
+    // If already logged in, skip straight to the dashboard.
+    if (localStorage.getItem("sa_token") || sessionStorage.getItem("sa_token")) {
+      window.location.href = "index.html";
+    }
+
+    // ---- Show / hide password ----
+    document.getElementById("togglePassword").addEventListener("click", (e) => {
+      const btnEl = e.currentTarget;
+      const showing = passwordInput.type === "text";
+      passwordInput.type = showing ? "password" : "text";
+      btnEl.textContent = showing ? "👁" : "🙈";
+      btnEl.setAttribute("aria-label", showing ? "Show password" : "Hide password");
+    });
+
+    // ---- Field validation ----
+    function clearErrors() {
+      document.getElementById("identifierError").textContent = "";
+      document.getElementById("passwordError").textContent = "";
+      errorText.textContent = "";
+    }
+
+    function validate() {
+      let valid = true;
+      clearErrors();
+      if (!identifierInput.value.trim()) {
+        document.getElementById("identifierError").textContent = "Please enter your email or mobile number.";
+        valid = false;
+      }
+      if (!passwordInput.value || passwordInput.value.length < 4) {
+        document.getElementById("passwordError").textContent = "Password must be at least 4 characters.";
+        valid = false;
+      }
+      return valid;
+    }
+
+    async function performLogin(identifier, password, remember) {
+      btn.disabled = true;
+      btn.textContent = "Signing in...";
+
+      const result = await loginUser(identifier, password);
+
+      if (result.ok && result.data?.access_token) {
+        saveSessionInline(result.data, remember);
+        window.location.href = "index.html";
+      } else {
+        errorText.textContent = result.data?.message || "Incorrect email/mobile or password.";
+        btn.disabled = false;
+        btn.textContent = "Sign In";
+      }
+    }
+
+    // Inlined (auth.js not loaded yet on this page before login) —
+    // mirrors saveSession() from auth.js exactly.
+    function saveSessionInline(data, remember) {
+      const store = remember ? localStorage : sessionStorage;
+      store.setItem("sa_token", data.access_token);
+      store.setItem("sa_user", JSON.stringify({
+        username: data.username, full_name: data.full_name, role: data.role,
+      }));
+    }
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (!validate()) return;
+      performLogin(identifierInput.value.trim(), passwordInput.value, rememberMe.checked);
+    });
+
+    demoBtn.addEventListener("click", () => {
+      identifierInput.value = "farmer@demo.com";
+      passwordInput.value = "farmer123";
+      clearErrors();
+      performLogin("farmer@demo.com", "farmer123", true);
+    });
+
+    // ---- Forgot password / Create account demo modals ----
+    const modal = document.getElementById("infoModal");
+    function showModal(title, body) {
+      document.getElementById("infoModalTitle").textContent = title;
+      document.getElementById("infoModalBody").textContent = body;
+      modal.classList.add("visible");
+    }
+    document.getElementById("forgotPasswordLink").addEventListener("click", (e) => {
+      e.preventDefault();
+      showModal("Reset your password",
+        "This is a demo build. In production, a reset link would be sent to your email or SMS. Use the demo login for now.");
+    });
+    document.getElementById("createAccountLink").addEventListener("click", (e) => {
+      e.preventDefault();
+      showModal("Create an account",
+        "Account creation isn't wired up in this demo. Tap \"Try Demo Login\" to explore the full dashboard right away.");
+    });
+    document.getElementById("infoModalClose").addEventListener("click", () => modal.classList.remove("visible"));
+  </script>
+</body>
+</html>
