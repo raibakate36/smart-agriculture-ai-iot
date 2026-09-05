@@ -1,1 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Analytics · Smart Agriculture</title>
+<link rel="stylesheet" href="../css/style.css" />
+<link rel="stylesheet" href="../css/responsive.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="app-shell">
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><span class="leaf" aria-hidden="true">🌱</span> Smart Agriculture</div>
+    <nav aria-label="Main navigation">
+      <ul class="nav-list">
+        <li><a href="../index.html"><span class="nav-icon">📊</span> Dashboard</a></li>
+        <li><a href="disease-detection.html"><span class="nav-icon">📷</span> Disease Detection</a></li>
+        <li><a href="irrigation.html"><span class="nav-icon">💧</span> Smart Irrigation</a></li>
+        <li><a href="crop-health.html"><span class="nav-icon">🍅</span> Crop Health</a></li>
+        <li><a href="analytics.html" class="active"><span class="nav-icon">📈</span> Analytics</a></li>
+        <li><a href="settings.html"><span class="nav-icon">⚙️</span> Settings</a></li>
+      </ul>
+    </nav>
+    <div class="sidebar-footer">
+      Logged in as <strong data-current-username>Farmer</strong><br/>
+      <a href="#" id="logoutBtn" style="color:#E6A25C;">Log out</a>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <button class="menu-toggle" id="menuToggle" aria-label="Open menu">☰</button>
+        <div>
+          <div class="page-title">Analytics</div>
+          <div class="page-subtitle">Historical trends for your field</div>
+        </div>
+      </div>
+      <div class="field-chip"><span class="dot"></span> FIELD_001 <span class="field-crop">· Tomato Crop</span></div>
+    </div>
+
+    <div class="content">
+      <div class="demo-banner visible" id="demoBanner">
+        <span class="badge">DEMO MODE</span>
+        <span>Showing simulated historical data for demonstration purposes.</span>
+      </div>
+
+      <div class="filter-row">
+        <label for="rangeSelect" style="font-size:0.85rem; font-weight:600; color:var(--color-ink-muted);">Time range:</label>
+        <select id="rangeSelect">
+          <option value="7" selected>Last 7 days</option>
+          <option value="30">Last 30 days</option>
+          <option value="90">Last 90 days</option>
+        </select>
+      </div>
+
+      <div id="loadingState" class="state-box">
+        <div class="spinner"></div>
+        <div>Loading analytics...</div>
+      </div>
+
+      <div id="analyticsContent" style="display:none;">
+        <div class="grid grid-4">
+          <div class="card">
+            <span class="card-label">Avg Soil Moisture</span>
+            <div class="metric-value" id="avgMoisture" style="font-size:1.6rem; margin-top:8px;">-- <span class="unit">%</span></div>
+          </div>
+          <div class="card">
+            <span class="card-label">Total Water Used</span>
+            <div class="metric-value" id="totalWater" style="font-size:1.6rem; margin-top:8px;">-- <span class="unit">L</span></div>
+          </div>
+          <div class="card">
+            <span class="card-label">Avg Temperature</span>
+            <div class="metric-value" id="avgTemp" style="font-size:1.6rem; margin-top:8px;">-- <span class="unit">°C</span></div>
+          </div>
+          <div class="card">
+            <span class="card-label">Crop Health Trend</span>
+            <div class="metric-value" id="healthTrend" style="font-size:1.3rem; margin-top:8px;">--</div>
+          </div>
+        </div>
+
+        <div class="grid grid-2" style="margin-top:20px;">
+          <div class="card chart-card">
+            <h3 style="font-size:0.95rem; margin-bottom:12px;">Soil Moisture</h3>
+            <canvas id="moistureChart"></canvas>
+          </div>
+          <div class="card chart-card">
+            <h3 style="font-size:0.95rem; margin-bottom:12px;">Temperature</h3>
+            <canvas id="tempChart"></canvas>
+          </div>
+        </div>
+
+        <div class="grid grid-2" style="margin-top:18px;">
+          <div class="card chart-card">
+            <h3 style="font-size:0.95rem; margin-bottom:12px;">Humidity</h3>
+            <canvas id="humidityChart"></canvas>
+          </div>
+          <div class="card chart-card">
+            <h3 style="font-size:0.95rem; margin-bottom:12px;">Water Usage (Liters/day)</h3>
+            <canvas id="waterChart"></canvas>
+          </div>
+        </div>
+
+        <div class="grid grid-2" style="margin-top:18px;">
+          <div class="card chart-card">
+            <h3 style="font-size:0.95rem; margin-bottom:12px;">Crop Health</h3>
+            <canvas id="healthChart"></canvas>
+          </div>
+          <div class="card chart-card">
+            <h3 style="font-size:0.95rem; margin-bottom:12px;">Disease Risk</h3>
+            <canvas id="diseaseChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div id="errorState" class="state-box" style="display:none;">
+        <span class="state-icon">⚠️</span>
+        <div id="errorMessage">Unable to load analytics.</div>
+        <button class="btn btn-secondary" onclick="loadAnalytics()">Try Again</button>
+      </div>
+
+      <footer class="app-footer">Smart Agriculture Monitoring Platform · Prototype build</footer>
+    </div>
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/analytics.js"></script>
+</body>
+</html>
 
